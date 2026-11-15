@@ -1,0 +1,25 @@
+name: log-sietch-population
+on:
+  schedule:
+    - cron: "*/15 * * * *"   # GitHub may delay or skip runs under load
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: log
+  cancel-in-progress: false
+jobs:
+  log:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scrape.py
+        env:
+          WORLD: umma
+      - run: |
+          git config user.name "sietch-logger"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/
+          git commit -m "sample $(date -u +%FT%TZ)" || exit 0
+          git pull --rebase && git push
